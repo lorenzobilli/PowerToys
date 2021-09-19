@@ -284,5 +284,12 @@ namespace Awake.Core
             TrayIcon.Text = text;
             TrayIcon.ContextMenuStrip = contextMenuStrip;
         }
+
+        public static void UpdateTrayIcon(Icon icon)
+        {
+            _log.Info("Updating tray icon.");
+            TrayIcon.Icon = icon;
+            _log.Info("Tray icon updated.");
+        }
     }
 }
