@@ -79,5 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\Awake.ico" />
+	<Resource Include="Images\Enabled.ico" />
+	<Resource Include="Images\Disabled.ico" />
   </ItemGroup>
 </Project>
