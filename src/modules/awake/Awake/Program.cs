@@ -27,6 +27,9 @@ namespace Awake
 {
     internal class Program
     {
+        private static readonly Icon _enabledIcon = new Icon(Application.GetResourceStream(new Uri("/Images/Enabled.ico", UriKind.Relative)).Stream);
+        private static readonly Icon _disabledIcon = new Icon(Application.GetResourceStream(new Uri("/Images/Disabled.ico", UriKind.Relative)).Stream);
+
         private static Mutex? _mutex = null;
         private static FileSystemWatcher? _watcher = null;
         private static SettingsUtils? _settingsUtils = null;
@@ -190,7 +193,7 @@ namespace Awake
                         }
                     }).Start();
 
-                    TrayHelper.InitializeTray(InternalConstants.FullAppName, new Icon(Application.GetResourceStream(new Uri("/Images/Awake.ico", UriKind.Relative)).Stream));
+                    TrayHelper.InitializeTray(InternalConstants.FullAppName, _disabledIcon);
 
                     string? settingsPath = _settingsUtils.GetSettingsFilePath(InternalConstants.AppName);
                     _log.Info($"Reading configuration file: {settingsPath}");
@@ -218,7 +221,7 @@ namespace Awake
                         .Select(e => e.EventArgs)
                         .Subscribe(HandleAwakeConfigChange);
 
-                    TrayHelper.SetTray(InternalConstants.FullAppName, new AwakeSettings());
+                    TrayHelper.SetTray(new AwakeSettings());
 
                     // Initially the file might not be updated, so we need to start processing
                     // settings right away.
@@ -258,7 +261,9 @@ namespace Awake
 
         private static void SetupIndefiniteKeepAwake(bool displayOn)
         {
-            APIHelper.SetIndefiniteKeepAwake(LogCompletedKeepAwakeThread, LogUnexpectedOrCancelledKeepAwakeThreadCompletion, displayOn);
+            APIHelper.SetIndefiniteKeepAwake(HandleCompletedKeepAwakeThread, HandleUnexpectedOrCancelledKeepAwakeThreadCompletion, displayOn);
+            TrayHelper.UpdateTrayIcon(_enabledIcon);
+            TrayHelper.UpdateTrayIconText(InternalConstants.FullAppName + " - Enabled");
         }
 
         private static void HandleAwakeConfigChange(FileSystemEventArgs fileEvent)
@@ -307,7 +312,7 @@ namespace Awake
                             }
                     }
 
-                    TrayHelper.SetTray(InternalConstants.FullAppName, settings);
+                    TrayHelper.SetTray(settings);
                 }
                 else
                 {
@@ -329,24 +334,32 @@ namespace Awake
             _log.Info($"Operating in passive mode (computer's standard power plan). No custom keep awake settings enabled.");
 
             APIHelper.SetNoKeepAwake();
+            TrayHelper.UpdateTrayIcon(_disabledIcon);
+            TrayHelper.UpdateTrayIconText(InternalConstants.FullAppName + " - Disabled");
         }
 
         private static void SetupTimedKeepAwake(uint time, bool displayOn)
         {
             _log.Info($"Timed keep-awake. Expected runtime: {time} seconds with display on setting set to {displayOn}.");
 
-            APIHelper.SetTimedKeepAwake(time, LogCompletedKeepAwakeThread, LogUnexpectedOrCancelledKeepAwakeThreadCompletion, displayOn);
+            APIHelper.SetTimedKeepAwake(time, HandleCompletedKeepAwakeThread, HandleUnexpectedOrCancelledKeepAwakeThreadCompletion, displayOn);
+            TrayHelper.UpdateTrayIcon(_enabledIcon);
+            TrayHelper.UpdateTrayIconText(InternalConstants.FullAppName + " - Enabled");
         }
 
-        private static void LogUnexpectedOrCancelledKeepAwakeThreadCompletion()
+        private static void HandleUnexpectedOrCancelledKeepAwakeThreadCompletion()
         {
+            TrayHelper.UpdateTrayIcon(_disabledIcon);
+            TrayHelper.UpdateTrayIconText(InternalConstants.FullAppName + " - Disabled");
             string? errorMessage = "The keep-awake thread was terminated early.";
             _log.Info(errorMessage);
             _log.Debug(errorMessage);
         }
 
-        private static void LogCompletedKeepAwakeThread(bool result)
+        private static void HandleCompletedKeepAwakeThread(bool result)
         {
+            TrayHelper.UpdateTrayIcon(_disabledIcon);
+            TrayHelper.UpdateTrayIconText(InternalConstants.FullAppName + " - Disabled");
             _log.Info($"Exited keep-awake thread successfully: {result}");
         }
     }

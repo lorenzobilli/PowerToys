@@ -57,10 +57,9 @@ namespace Awake.Core
             TrayIcon.Dispose();
         }
 
-        internal static void SetTray(string text, AwakeSettings settings)
+        internal static void SetTray(AwakeSettings settings)
         {
             SetTray(
-                text,
                 settings.Properties.KeepDisplayOn,
                 settings.Properties.Mode,
                 PassiveKeepAwakeCallback(InternalConstants.AppName),
@@ -164,7 +163,7 @@ namespace Awake.Core
             };
         }
 
-        public static void SetTray(string text, bool keepDisplayOn, AwakeMode mode, Action passiveKeepAwakeCallback, Action indefiniteKeepAwakeCallback, Action<uint, uint> timedKeepAwakeCallback, Action keepDisplayOnCallback, Action exitCallback)
+        public static void SetTray(bool keepDisplayOn, AwakeMode mode, Action passiveKeepAwakeCallback, Action indefiniteKeepAwakeCallback, Action<uint, uint> timedKeepAwakeCallback, Action keepDisplayOnCallback, Action exitCallback)
         {
             ContextMenuStrip? contextMenuStrip = new ContextMenuStrip();
 
@@ -281,7 +280,6 @@ namespace Awake.Core
             contextMenuStrip.Items.Add(new ToolStripSeparator());
             contextMenuStrip.Items.Add(exitContextMenu);
 
-            TrayIcon.Text = text;
             TrayIcon.ContextMenuStrip = contextMenuStrip;
         }
 
@@ -290,6 +288,13 @@ namespace Awake.Core
             _log.Info("Updating tray icon.");
             TrayIcon.Icon = icon;
             _log.Info("Tray icon updated.");
+        }
+
+        public static void UpdateTrayIconText(string text)
+        {
+            _log.Info($"Updating tray icon text to {text}.");
+            TrayIcon.Text = text;
+            _log.Info("Tray icon text updated.");
         }
     }
 }
